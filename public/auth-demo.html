@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Learning Authentication Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .auth-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .google-btn {
+            background-color: #4285f4;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        .google-btn:hover {
+            background-color: #357ae8;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .btn {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn:hover {
+            background-color: #218838;
+        }
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #555;
+            border-bottom: 2px solid #4285f4;
+            padding-bottom: 10px;
+        }
+        .endpoint {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-left: 4px solid #4285f4;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 E-Learning Authentication Demo</h1>
+        
+        <div class="auth-section">
+            <h2>🔐 Google OAuth Authentication</h2>
+            <p>Click the button below to authenticate with Google:</p>
+            <a href="http://localhost:3000/api/v1/auth/google" class="google-btn">
+                🔍 Sign in with Google
+            </a>
+            <div class="endpoint">
+                <strong>Endpoint:</strong> GET /api/v1/auth/google
+            </div>
+        </div>
+
+        <div class="auth-section">
+            <h2>📝 Traditional Registration</h2>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="regUsername">Username:</label>
+                    <input type="text" id="regUsername" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="regEmail">Email:</label>
+                    <input type="email" id="regEmail" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="regPassword">Password:</label>
+                    <input type="password" id="regPassword" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="regCPassword">Confirm Password:</label>
+                    <input type="password" id="regCPassword" name="cpassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="regPhone">Phone:</label>
+                    <input type="tel" id="regPhone" name="phone" required>
+                </div>
+                <button type="submit" class="btn">Register</button>
+            </form>
+            <div class="endpoint">
+                <strong>Endpoint:</strong> POST /api/v1/auth/register
+            </div>
+            <div id="registerResponse" class="response" style="display: none;"></div>
+        </div>
+
+        <div class="auth-section">
+            <h2>🔑 Traditional Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Email:</label>
+                    <input type="email" id="loginEmail" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password:</label>
+                    <input type="password" id="loginPassword" name="password" required>
+                </div>
+                <button type="submit" class="btn">Login</button>
+            </form>
+            <div class="endpoint">
+                <strong>Endpoint:</strong> POST /api/v1/auth/login
+            </div>
+            <div id="loginResponse" class="response" style="display: none;"></div>
+        </div>
+
+        <div class="auth-section">
+            <h2>👤 Get Profile (Protected Route)</h2>
+            <p>This requires authentication token from login or Google OAuth:</p>
+            <button id="getProfileBtn" class="btn">Get Profile</button>
+            <div class="endpoint">
+                <strong>Endpoint:</strong> GET /api/v1/auth/profile
+                <br><strong>Headers:</strong> Authorization: Bearer {token}
+            </div>
+            <div id="profileResponse" class="response" style="display: none;"></div>
+        </div>
+
+        <div class="auth-section">
+            <h2>📋 Available Endpoints</h2>
+            <div class="endpoint">
+                <strong>Google OAuth:</strong><br>
+                • GET /api/v1/auth/google - Initiate Google OAuth<br>
+                • GET /api/v1/auth/google/callback - Google OAuth callback<br>
+                • GET /api/v1/auth/google/success - OAuth success handler<br>
+                • GET /api/v1/auth/google/failure - OAuth failure handler
+            </div>
+            <div class="endpoint">
+                <strong>Traditional Auth:</strong><br>
+                • POST /api/v1/auth/register - User registration<br>
+                • POST /api/v1/auth/login - User login<br>
+                • GET /api/v1/auth/profile - Get user profile (protected)
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api/v1';
+        let authToken = localStorage.getItem('authToken');
+
+        // Handle URL parameters for OAuth success/failure
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const user = urlParams.get('user');
+        const error = urlParams.get('error');
+
+        if (token) {
+            localStorage.setItem('authToken', token);
+            authToken = token;
+            showResponse('profileResponse', `Google OAuth Success! Token saved. User: ${user}`, 'success');
+        }
+
+        if (error) {
+            showResponse('profileResponse', `Google OAuth Error: ${error}`, 'error');
+        }
+
+        // Register form handler
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResponse('registerResponse', `Registration successful! User: ${result.data.username}`, 'success');
+                    e.target.reset();
+                } else {
+                    showResponse('registerResponse', `Registration failed: ${result.message || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                showResponse('registerResponse', `Network error: ${error.message}`, 'error');
+            }
+        });
+
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    authToken = result.data.token;
+                    localStorage.setItem('authToken', authToken);
+                    showResponse('loginResponse', `Login successful! Token saved. User: ${result.data.user.username}`, 'success');
+                    e.target.reset();
+                } else {
+                    showResponse('loginResponse', `Login failed: ${result.message || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                showResponse('loginResponse', `Network error: ${error.message}`, 'error');
+            }
+        });
+
+        // Get profile handler
+        document.getElementById('getProfileBtn').addEventListener('click', async () => {
+            if (!authToken) {
+                showResponse('profileResponse', 'Please login first to get a token', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/profile`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResponse('profileResponse', `Profile retrieved successfully! Data: ${JSON.stringify(result.data, null, 2)}`, 'success');
+                } else {
+                    showResponse('profileResponse', `Failed to get profile: ${result.message || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                showResponse('profileResponse', `Network error: ${error.message}`, 'error');
+            }
+        });
+
+        function showResponse(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `response ${type}`;
+            element.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

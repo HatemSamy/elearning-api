@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google OAuth Success</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            text-align: center;
+        }
+        .success-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .success-icon {
+            font-size: 64px;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+        .user-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .token-info {
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn-success {
+            background-color: #28a745;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="success-icon">✅</div>
+        <h1>Google OAuth Success!</h1>
+        <p>You have successfully authenticated with Google.</p>
+        
+        <div id="userInfo" class="user-info">
+            <h3>User Information:</h3>
+            <div id="userData"></div>
+        </div>
+        
+        <div id="tokenInfo" class="token-info">
+            <h4>JWT Token (saved to localStorage):</h4>
+            <div id="tokenData"></div>
+        </div>
+        
+        <div>
+            <button id="testProfileBtn" class="btn btn-success">Test Profile API</button>
+            <a href="/" class="btn">Back to Demo</a>
+        </div>
+        
+        <div id="profileResult" style="margin-top: 20px;"></div>
+    </div>
+
+    <script>
+        // Get token and user from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const userParam = urlParams.get('user');
+        
+        if (token && userParam) {
+            // Save token to localStorage
+            localStorage.setItem('authToken', token);
+            
+            // Parse user data
+            const userData = JSON.parse(decodeURIComponent(userParam));
+            
+            // Display user information
+            document.getElementById('userData').innerHTML = `
+                <p><strong>Name:</strong> ${userData.username}</p>
+                <p><strong>Email:</strong> ${userData.email}</p>
+                <p><strong>Provider:</strong> ${userData.authProvider}</p>
+                <p><strong>Email Verified:</strong> ${userData.isEmailVerified ? 'Yes' : 'No'}</p>
+                <p><strong>Avatar:</strong> <img src="${userData.avatar}" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%;"></p>
+            `;
+            
+            // Display token (truncated)
+            document.getElementById('tokenData').textContent = token.substring(0, 50) + '...';
+            
+            // Test profile button
+            document.getElementById('testProfileBtn').addEventListener('click', async () => {
+                try {
+                    const response = await fetch('http://localhost:3000/api/v1/auth/profile', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        document.getElementById('profileResult').innerHTML = `
+                            <div style="background-color: #d4edda; padding: 15px; border-radius: 8px; color: #155724;">
+                                <h4>✅ Profile API Test Successful!</h4>
+                                <pre style="text-align: left; font-size: 12px;">${JSON.stringify(result.data, null, 2)}</pre>
+                            </div>
+                        `;
+                    } else {
+                        document.getElementById('profileResult').innerHTML = `
+                            <div style="background-color: #f8d7da; padding: 15px; border-radius: 8px; color: #721c24;">
+                                <h4>❌ Profile API Test Failed</h4>
+                                <p>${result.message}</p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    document.getElementById('profileResult').innerHTML = `
+                        <div style="background-color: #f8d7da; padding: 15px; border-radius: 8px; color: #721c24;">
+                            <h4>❌ Network Error</h4>
+                            <p>${error.message}</p>
+                        </div>
+                    `;
+                }
+            });
+            
+        } else {
+            document.getElementById('userInfo').innerHTML = '<p style="color: red;">No authentication data found in URL.</p>';
+        }
+    </script>
+</body>
+</html>
