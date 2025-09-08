@@ -113,33 +113,7 @@ export const googleAuthFailure = asyncHandler(async (req, res, next) => {
     res.redirect(`${frontendURL}/?error=Authentication failed`)
 })
 
-// Get current user profile
-export const getProfile = asyncHandler(async (req, res, next) => {
-    const user = await prisma.user.findUnique({
-        where: { id: req.user.id },
-        select: {
-            id: true,
-            username: true,
-            email: true,
-            phone: true,
-            avatar: true,
-            isEmailVerified: true,
-            authProvider: true,
-            createdAt: true,
-            updatedAt: true
-        }
-    })
 
-    if (!user) {
-        return next(new Error('User not found', { cause: 404 }))
-    }
-
-    res.status(200).json({
-        success: true,
-        message: 'Profile retrieved successfully',
-        data: user
-    })
-})
 
 const generateOTP = () => {
     return Math.floor(1000 + Math.random() * 9000).toString()

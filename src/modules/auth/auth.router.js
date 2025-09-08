@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import passport from '../../config/passport.js'
+import passport from '../../../config/passport.js'
 import { validation } from '../../middleware/validation.js'
 import { 
     registerSchema, 
@@ -54,8 +54,5 @@ router.get('/google/callback',
 
 router.get('/google/success', authController.googleAuthSuccess)
 router.get('/google/failure', authController.googleAuthFailure)
-
-// Protected routes
-router.get('/profile', auth(), authController.getProfile)
 
 export default router

@@ -3,13 +3,13 @@ import { fileURLToPath } from 'url'
 import dotenv from 'dotenv'
 import cors from 'cors'
 import session from 'express-session'
-import passport from './src/config/passport.js'
+import passport from './config/passport.js'
 //set directory dirname 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 dotenv.config({ path: path.join(__dirname, './config/.env') })
 import express from 'express'
 import * as indexRouter from './src/modules/index.router.js'
-import { connectDB } from './DB/connection.js'
+import { connectDB } from './config/connection.js'
 import { globalErrorHandling } from './src/middleware/errorHandling.js'
 const app = express()
 // setup port and the baseUrl
@@ -63,6 +63,10 @@ app.get('/oauth-success', (req, res) => {
 app.use(`${baseUrl}/auth`, indexRouter.authRouter)
 app.use(`${baseUrl}/courses`, indexRouter.courseRouter)
 app.use(`${baseUrl}/payments`, indexRouter.paymentRouter)
+app.use(`${baseUrl}/enrollment`, indexRouter.enrollmentRouter)
+app.use(`${baseUrl}/users`, indexRouter.userRouter)
+
+
 
 app.use('*', (req, res, next) => {
     res.send("In-valid Routing Plz check url  or  method")
