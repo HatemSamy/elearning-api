@@ -12,12 +12,11 @@ import {
 
 const prisma = new PrismaClient()
 
-// Helper function to generate JWT token
 const generateToken = (user) => {
     return jwt.sign(
         { id: user.id, email: user.email },
         process.env.tokenSignature,
-        { expiresIn: '24h' }
+        { expiresIn: process.env.JWT_EXPIRES_IN }
     )
 }
 
@@ -34,7 +33,6 @@ export const registerUser = asyncHandler(async (req, res, next) => {
         return next(new Error('User already exists with this email', { cause: 400 }))
     }
 
-    // Hash password using SALTROUND from env
     const saltRounds = parseInt(process.env.SALTROUND) || 12
     const hashedPassword = await bcrypt.hash(password, saltRounds)
 
@@ -47,7 +45,6 @@ export const registerUser = asyncHandler(async (req, res, next) => {
         }
     })
 
-    // Remove password from response
     const { password: _, ...userResponse } = user
 
     res.status(201).json({
@@ -75,7 +72,6 @@ export const loginUser = asyncHandler(async (req, res, next) => {
         return next(new Error('Invalid email or password', { cause: 401 }))
     }
 
-    // Generate JWT token
     const token = generateToken(user)
 
     const { password: _, ...userResponse } = user
@@ -96,13 +92,10 @@ export const googleAuthSuccess = asyncHandler(async (req, res, next) => {
         return next(new Error('Authentication failed', { cause: 401 }))
     }
 
-    // Generate JWT token
     const token = generateToken(req.user)
 
-    // Remove password from response
     const { password, ...userResponse } = req.user
 
-    // Redirect to frontend 
     const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3000'
     res.redirect(`${frontendURL}/oauth-success?token=${token}&user=${encodeURIComponent(JSON.stringify(userResponse))}`)
 })
@@ -136,12 +129,10 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
         return next(new Error('This account was created with Google. Please use Google Sign-In to access your account', { cause: 400 }))
     }
 
-    // Generate 4-digit OTP
     const otp = generateOTP()
 
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000)
 
-    // Update user with OTP and expiration
     await prisma.user.update({
         where: { email },
         data: {
@@ -182,7 +173,6 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
 export const verifyOTP = asyncHandler(async (req, res, next) => {
     const { otp } = req.body
 
-    // Convert OTP to string if it's a number
     const otpString = typeof otp === 'number' ? otp.toString() : otp
 
     const user = await prisma.user.findFirst({
@@ -230,7 +220,6 @@ export const verifyOTP = asyncHandler(async (req, res, next) => {
 export const resetPassword = asyncHandler(async (req, res, next) => {
     const { newPassword, resetToken } = req.body
 
-    // Validate required fields
     if (!newPassword || !resetToken) {
         return next(new Error('New password and reset token are required', { cause: 400 }))
     }

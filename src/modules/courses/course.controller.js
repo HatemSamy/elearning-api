@@ -1,32 +1,48 @@
 import { PrismaClient } from '@prisma/client'
 import { asyncHandler } from '../../middleware/errorHandling.js'
-import path from 'path';
 const prisma = new PrismaClient()
 
 // Create Course
 export const createCourse = asyncHandler(async (req, res, next) => {
-    const { title, description, price } = req.body;
-
-    // Check if file was uploaded successfully
+    const courseData = { ...req.body };
+    
+ // Check if file was uploaded successfully
     if (!req.file) {
         return next(new Error("Course image is required", { cause: 400 }));
     }
-
-    // Validate required fields
-    if (!title || !description || !price) {
-        return next(new Error("Title, description, and price are required", { cause: 400 }));
-    }
-
     const imageUrl = `${req.protocol}://${req.get('host')}/uploads/course/${req.file.filename}`;
+    // Parse JSON strings for complex fields
+    const parseJsonField = (field) => {
+        return typeof field === 'string' ? JSON.parse(field) : field;
+    };
 
-    console.log('Image URL:', imageUrl);
-    
     const course = await prisma.course.create({
         data: {
-            title,
-            description,
-            price: parseFloat(price),
-            image: imageUrl 
+            image: imageUrl,
+            name: courseData.name,
+            duration: courseData.duration,
+            location: courseData.location,
+            startDate: new Date(courseData.startDate),
+            endDate: new Date(courseData.endDate),
+            fees: courseData.fees,
+            language: courseData.language,
+            overview: courseData.overview || null,
+            objectives: parseJsonField(courseData.objectives),
+            outcomes: courseData.outcomes || null,
+            agenda: courseData.agenda ? parseJsonField(courseData.agenda) : null,
+            examination: courseData.examination || null,
+            accreditation: courseData.accreditation,
+            paymentMethods: parseJsonField(courseData.paymentMethods),
+            instructorId: courseData.instructorId ? parseInt(courseData.instructorId) : null
+        },
+        include: {
+            instructor: {
+                select: {
+                    id: true,
+                    username: true,
+                    email: true
+                }
+            }
         }
     });
 
@@ -41,6 +57,15 @@ export const createCourse = asyncHandler(async (req, res, next) => {
 // Get All Courses
 export const getAllCourses = asyncHandler(async (req, res, next) => {
     const courses = await prisma.course.findMany({
+        include: {
+            instructor: {
+                select: {
+                    id: true,
+                    username: true,
+                    email: true
+                }
+            }
+        },
         orderBy: {
             createdAt: 'desc'
         }
@@ -70,6 +95,15 @@ export const getCourseById = asyncHandler(async (req, res, next) => {
     const course = await prisma.course.findUnique({
         where: {
             id: parseInt(id)
+        },
+        include: {
+            instructor: {
+                select: {
+                    id: true,
+                    username: true,
+                    email: true
+                }
+            }
         }
     })
 

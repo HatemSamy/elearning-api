@@ -3,7 +3,8 @@ import { asyncHandler } from '../../middleware/errorHandling.js'
 
 const prisma = new PrismaClient()
 
-// Create Payment
+
+// Create Payment (Legacy - for backward compatibility)
 export const createPayment = asyncHandler(async (req, res, next) => {
     const { userId, courseId, amount } = req.body
 
@@ -25,12 +26,12 @@ export const createPayment = asyncHandler(async (req, res, next) => {
         return next(new Error('Course not found', { cause: 404 }))
     }
 
-    // Check if user already has a payment for this course
+    // Check if user already has a successful payment for this course
     const existingPayment = await prisma.payment.findFirst({
         where: {
             userId: parseInt(userId),
             courseId: parseInt(courseId),
-            status: 'pending'
+            status: 'success'
         }
     })
 
@@ -38,7 +39,7 @@ export const createPayment = asyncHandler(async (req, res, next) => {
         return next(new Error('User has already successfully paid for this course', { cause: 400 }))
     }
 
-    // Create payment
+    // Create payment record (pending status)
     const payment = await prisma.payment.create({
         data: {
             userId: parseInt(userId),
@@ -57,8 +58,9 @@ export const createPayment = asyncHandler(async (req, res, next) => {
             course: {
                 select: {
                     id: true,
-                    title: true,
-                    price: true
+                    name: true,
+                    fees: true,
+                    image: true
                 }
             }
         }

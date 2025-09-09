@@ -6,16 +6,18 @@ const prisma = new PrismaClient()
 
 // Enroll user in a course
 export const enrollInCourse = asyncHandler(async (req, res, next) => {
- const courseId = Number(req.params.courseId);
-const userId = req.user.id;
+  const courseId = Number(req.params.courseId);
+  const userId = req.user.id;
+  const { EnrollmentMode } = req.body; 
 
+  
   // Check if course exists
   const course = await prisma.course.findUnique({
     where: { id: courseId }
-  })
+  });
 
   if (!course) {
-    return next(new Error('Course not found', { cause: 404 }))
+    return next(new Error('Course not found', { cause: 404 }));
   }
 
   // Check if user is already enrolled
@@ -26,32 +28,18 @@ const userId = req.user.id;
         courseId
       }
     }
-  })
+  });
 
   if (existingEnrollment) {
-    return next(new Error('User is already enrolled in this course', { cause: 409 }))
+    return next(new Error('User is already enrolled in this course', { cause: 409 }));
   }
 
-  // Check if payment is required and completed
-//   if (course.price > 0) {
-//     const successfulPayment = await prisma.payment.findFirst({
-//       where: {
-//         userId,
-//         courseId,
-//         status: 'success'
-//       }
-//     })
-
-//     if (!successfulPayment) {
-//       return next(new Error('Payment required for this course', { cause: 402 }))
-//     }
-//   }
-
-  // Create enrollment
+  // Create enrollment with enrollmentType
   const enrollment = await prisma.enrollment.create({
     data: {
       userId,
-      courseId
+      courseId,
+      EnrollmentMode 
     },
     include: {
       user: {
@@ -64,20 +52,21 @@ const userId = req.user.id;
       course: {
         select: {
           id: true,
-          title: true,
-          description: true,
-          price: true
+          name: true,       
+          overview: true,    
+          fees: true         
         }
       }
     }
-  })
+  });
 
   res.status(201).json({
     success: true,
     message: 'Successfully enrolled in course',
     enrollment
-  })
-})
+  });
+});
+
 
 
 

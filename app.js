@@ -12,13 +12,14 @@ import * as indexRouter from './src/modules/index.router.js'
 import { connectDB } from './config/connection.js'
 import { globalErrorHandling } from './src/middleware/errorHandling.js'
 const app = express()
+
 // setup port and the baseUrl
 const port = process.env.PORT || 5000
 const baseUrl = process.env.BASEURL
 
 // CORS Configuration - Open for all origins
 const corsOptions = {
-    origin: true, // Allow all origins
+    origin: true, 
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
@@ -38,7 +39,7 @@ app.use(session({
     }
 }))
 
-// Initialize Passport
+
 app.use(passport.initialize())
 app.use(passport.session())
 
@@ -63,8 +64,11 @@ app.get('/oauth-success', (req, res) => {
 app.use(`${baseUrl}/auth`, indexRouter.authRouter)
 app.use(`${baseUrl}/courses`, indexRouter.courseRouter)
 app.use(`${baseUrl}/payments`, indexRouter.paymentRouter)
+app.use(`${baseUrl}/payment-methods`, indexRouter.paymentMethodRouter)
 app.use(`${baseUrl}/enrollment`, indexRouter.enrollmentRouter)
 app.use(`${baseUrl}/users`, indexRouter.userRouter)
+app.use(`${baseUrl}/wishlist`, indexRouter.WishlistRouter)
+
 
 
 
