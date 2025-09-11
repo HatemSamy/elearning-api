@@ -49,8 +49,6 @@ export const addToWishlist = asyncHandler(async (req, res, next) => {
 
 export const getWishlist = asyncHandler(async (req, res, next) => {
   const userId = req.user.id;
-  
-
   const wishlist = await prisma.wishlist.findMany({
     where: { userId },
     include: {

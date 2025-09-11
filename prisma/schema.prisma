@@ -45,6 +45,7 @@ model User {
 enum CourseLocation {
   ELEARNING
   ONSITE
+  ONLINE
   HYBRID
 }
 
@@ -84,6 +85,7 @@ model Course {
 enum EnrollmentMode {
   ELEARNING
   ONSITE
+  ONLINE
   HYBRID
 }
 

@@ -57,25 +57,33 @@ export const registerUser = asyncHandler(async (req, res, next) => {
 // Login User
 export const loginUser = asyncHandler(async (req, res, next) => {
     const { email, password } = req.body
-
     const user = await prisma.user.findUnique({
-        where: { email }
+        where: { email },
+        select: {
+            id: true,
+            email: true,
+            password: true, 
+            username: true,
+            isEmailVerified: true,
+            authProvider: true,
+            googleId: true,
+            createdAt: true,
+            updatedAt: true
+        }
     })
-
+    
     if (!user) {
         return next(new Error('Invalid email or password', { cause: 401 }))
     }
-
+    
     const isPasswordValid = await bcrypt.compare(password, user.password)
-
     if (!isPasswordValid) {
         return next(new Error('Invalid email or password', { cause: 401 }))
     }
-
+    
     const token = generateToken(user)
-
     const { password: _, ...userResponse } = user
-
+    
     res.status(200).json({
         success: true,
         message: 'Login successful',
@@ -111,6 +119,7 @@ export const googleAuthFailure = asyncHandler(async (req, res, next) => {
 const generateOTP = () => {
     return Math.floor(1000 + Math.random() * 9000).toString()
 }
+
 
 // Forgot Password - Send OTP to email
 export const forgotPassword = asyncHandler(async (req, res, next) => {

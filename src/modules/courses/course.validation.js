@@ -1,7 +1,7 @@
 import joi from 'joi'
 
 
-const allowedLocations = ["ONSITE", "ELEARNING", "HYBRID"];
+const allowedLocations = ["ONSITE", "ELEARNING", "HYBRID","ONLINE"];
 
 // Create course validation schema
 export const createCourseSchema = {
