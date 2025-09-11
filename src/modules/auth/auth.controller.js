@@ -202,7 +202,6 @@ export const verifyOTP = asyncHandler(async (req, res, next) => {
     
     const resetTokenExpires = new Date(Date.now() + 15 * 60 * 1000)
 
-    // Update user with reset token and clear OTP fields
     await prisma.user.update({
         where: { id: user.id },
         data: {
