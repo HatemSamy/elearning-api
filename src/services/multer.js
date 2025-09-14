@@ -8,11 +8,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const HME = (err, req, res, next) => {
     if (err) {
-        console.error('Multer Error:', err);
-        return res.status(400).json({ 
-            message: "File upload error", 
-            error: err.message || err 
-        });
+        // Only handle multer-specific errors
+        if (err instanceof multer.MulterError) {
+            console.error('Multer Error:', err);
+            return res.status(400).json({ 
+                message: "File upload error", 
+                error: err.message || err 
+            });
+        }
+        return next(err);
     }
     next();
 };
@@ -42,7 +46,7 @@ export function myMulter(folderName) {
         storage, 
         fileFilter,
         limits: {
-            fileSize: 5 * 1024 * 1024 // 5MB limit
+            fileSize: 5 * 1024 * 1024 
         }
     });
 }
@@ -50,17 +54,3 @@ export function myMulter(folderName) {
 
 
 
-// export function myMulter(customValidation=fileValidation.image) {
- 
-//     const storage = multer.diskStorage({})
-
-//     function fileFilter(req, file, cb) {
-//         if (customValidation.includes(file.mimetype)) {
-//             cb(null, true)
-//         } else {
-//             cb('invalid format', false)
-//         }
-//     }
-//     const upload = multer({ fileFilter, storage })
-//     return upload
-// }

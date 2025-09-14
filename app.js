@@ -68,6 +68,7 @@ app.use(`${baseUrl}/payment-methods`, indexRouter.paymentMethodRouter)
 app.use(`${baseUrl}/enrollment`, indexRouter.enrollmentRouter)
 app.use(`${baseUrl}/users`, indexRouter.userRouter)
 app.use(`${baseUrl}/wishlist`, indexRouter.WishlistRouter)
+app.use(`${baseUrl}/cart`, indexRouter.cartRouter)
 
 
 

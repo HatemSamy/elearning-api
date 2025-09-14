@@ -1,5 +1,4 @@
 
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -32,6 +31,7 @@ model User {
   // Relations
   payments Payment[]
   wishlists       Wishlist[]
+  cartItems Cart[]
   enrollments Enrollment[]
   instructedCourses Course[] 
   paymentMethods PaymentMethod[]
@@ -42,11 +42,20 @@ model User {
 
 
 
+// Course Location Enum
 enum CourseLocation {
   ELEARNING
   ONSITE
   ONLINE
   HYBRID
+}
+
+// Course Level Enum  
+enum CourseLevel {
+  FOUNDATION
+  INTERNAL_AUDITOR
+  LEAD_AUDITOR
+  LEAD_IMPLEMENTER
 }
 
 // Course Model
@@ -64,9 +73,12 @@ model Course {
   objectives      String[]
   outcomes        String?
   agenda          Json?
+  features        Json? 
   examination     String?
   accreditation   String   
   paymentMethods  String[]
+  category      String
+  level         CourseLevel
   instructor      User?    @relation(fields: [instructorId], references: [id])
   instructorId    Int?
   createdAt       DateTime @default(now())
@@ -76,6 +88,7 @@ model Course {
   payments Payment[]
   enrollments Enrollment[]
   wishlists       Wishlist[]
+  cartItems Cart[]
   @@map("courses")
 }
 
@@ -155,4 +168,19 @@ model Wishlist {
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@unique([userId, courseId]) 
+}
+
+// Cart Model
+model Cart {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  courseId  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@map("cart")
 }

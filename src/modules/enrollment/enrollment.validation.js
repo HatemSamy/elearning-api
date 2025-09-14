@@ -1,5 +1,7 @@
 
 import joi from 'joi'
+import { allowedEnrollmentModes } from '../../constants/enums.js'
+
 export const enrollInCourseSchema = {
   params: joi.object({
     courseId: joi.number()
@@ -16,10 +18,10 @@ export const enrollInCourseSchema = {
 
   body: joi.object({
     EnrollmentMode: joi.string()
-      .valid('ELEARNING', 'ONSITE', 'HYBRID')
+      .valid(...allowedEnrollmentModes)
       .required()
       .messages({
-        'any.only': 'Enrollment type must be one of ELEARNING, ONSITE, HYBRID',
+        'any.only': `Enrollment type must be one of: ${allowedEnrollmentModes.join(', ')}`,
         'any.required': 'Enrollment type is required'
       })
   })

@@ -1,7 +1,5 @@
 import joi from 'joi'
-
-
-const allowedLocations = ["ONSITE", "ELEARNING", "HYBRID","ONLINE"];
+import { allowedLocations, allowedLevels } from '../../constants/enums.js'
 
 // Create course validation schema
 export const createCourseSchema = {
@@ -147,6 +145,23 @@ export const createCourseSchema = {
                 'any.invalid': 'Agenda must be a valid JSON object or JSON string'
             }),
 
+        features: joi.alternatives()
+            .try(
+                joi.object(),
+                joi.string().custom((value, helpers) => {
+                    try {
+                        JSON.parse(value);
+                        return value;
+                    } catch (error) {
+                        return helpers.error('any.invalid');
+                    }
+                })
+            )
+            .optional()
+            .messages({
+                'any.invalid': 'Features must be a valid JSON object or JSON string'
+            }),
+
         examination: joi.string()
             .optional()
             .messages({
@@ -189,6 +204,25 @@ export const createCourseSchema = {
                 'number.base': 'Instructor ID must be a number',
                 'number.integer': 'Instructor ID must be an integer',
                 'number.positive': 'Instructor ID must be a positive number'
+            }),
+
+        category: joi.string()
+            .min(3)
+            .max(100)
+            .required()
+            .messages({
+                'string.empty': 'Course category is required',
+                'string.min': 'Category must be at least 3 characters long',
+                'string.max': 'Category must not exceed 100 characters',
+                'any.required': 'Course category is required'
+            }),
+
+        level: joi.string()
+            .valid(...allowedLevels)
+            .required()
+            .messages({
+                'any.only': `Level must be one of: ${allowedLevels.join(', ')}`,
+                'any.required': 'Course level is required'
             })
     })
 }

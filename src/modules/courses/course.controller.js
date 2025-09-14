@@ -5,13 +5,11 @@ const prisma = new PrismaClient()
 // Create Course
 export const createCourse = asyncHandler(async (req, res, next) => {
     const courseData = { ...req.body };
-    
- // Check if file was uploaded successfully
+
     if (!req.file) {
         return next(new Error("Course image is required", { cause: 400 }));
     }
     const imageUrl = `${req.protocol}://${req.get('host')}/uploads/course/${req.file.filename}`;
-    // Parse JSON strings for complex fields
     const parseJsonField = (field) => {
         return typeof field === 'string' ? JSON.parse(field) : field;
     };
@@ -30,9 +28,12 @@ export const createCourse = asyncHandler(async (req, res, next) => {
             objectives: parseJsonField(courseData.objectives),
             outcomes: courseData.outcomes || null,
             agenda: courseData.agenda ? parseJsonField(courseData.agenda) : null,
+            features: courseData.features ? parseJsonField(courseData.features) : null,
             examination: courseData.examination || null,
             accreditation: courseData.accreditation,
             paymentMethods: parseJsonField(courseData.paymentMethods),
+            category: courseData.category,
+            level: courseData.level,
             instructorId: courseData.instructorId ? parseInt(courseData.instructorId) : null
         },
         include: {
@@ -117,3 +118,42 @@ export const getCourseById = asyncHandler(async (req, res, next) => {
         data: course
     })
 })
+
+
+
+
+
+export const getCoursesByCategoryAndLevel = asyncHandler(async (req, res, next) => {
+    const { category, level } = req.query;
+  
+    const courses = await prisma.course.findMany({
+      where: {
+        category: category,   
+        level: level          
+      },
+      select: {
+        id: true,
+        name: true,
+        category: true,
+        level: true,
+        fees: true,
+        image: true,
+        duration: true
+      }
+    });
+  
+
+    if (!courses || courses.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "No courses found for this category and level"
+        });
+      }
+
+    res.status(200).json({
+      success: true,
+      count: courses.length,
+      data: courses
+    });
+  });
+  

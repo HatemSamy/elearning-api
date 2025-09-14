@@ -6,6 +6,7 @@ import paymentMethodRouter from './paymentMethods/paymentMethod.router.js'
 import enrollmentRouter from './enrollment/enrollment.router.js'
 import userRouter from './user/user.router.js'
 import WishlistRouter from './wishlist/wishlist.router.js'
+import cartRouter from './cart/cart.router.js'
 
 
 
@@ -17,5 +18,6 @@ export {
     paymentMethodRouter,
     enrollmentRouter,
     userRouter,
-    WishlistRouter
+    WishlistRouter,
+    cartRouter
 }
