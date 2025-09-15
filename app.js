@@ -1,5 +1,6 @@
 import path from 'path'
 import { fileURLToPath } from 'url'
+import fs from "fs";
 import dotenv from 'dotenv'
 import cors from 'cors'
 import session from 'express-session'
@@ -70,7 +71,15 @@ app.use(`${baseUrl}/users`, indexRouter.userRouter)
 app.use(`${baseUrl}/wishlist`, indexRouter.WishlistRouter)
 app.use(`${baseUrl}/cart`, indexRouter.cartRouter)
 
-
+app.get("/Welcome_API", (req, res) => {
+    const filePath = path.join(__dirname, "src", "templates", "banner.html");
+    res.sendFile(filePath, (err) => {
+      if (err) {
+        console.error("Error loading banner:", err);
+        res.status(500).send("Error loading banner");
+      }
+    });
+  });
 
 
 app.use('*', (req, res, next) => {
