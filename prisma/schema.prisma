@@ -60,37 +60,49 @@ enum CourseLevel {
 
 // Course Model
 model Course {
-  id              Int      @id @default(autoincrement())
-  image           String
-  name            String
-  duration        String
-  location        CourseLocation[]  
-  startDate       DateTime
-  endDate         DateTime
-  fees            String
-  language        String
-  overview        String?
-  objectives      String[]
-  outcomes        String?
-  agenda          Json?
-  features        Json? 
-  examination     String?
-  accreditation   String   
-  paymentMethods  String[]
-  category      String
-  level         CourseLevel
-  instructor      User?    @relation(fields: [instructorId], references: [id])
-  instructorId    Int?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                Int             @id @default(autoincrement())
+  image             String
+  name_en           String
+  name_ar           String
+  duration_en       String
+  duration_ar       String
+  overview_en       String?
+  overview_ar       String?
+  objectives_en     String[]
+  objectives_ar     String[]
+  outcomes_en       String?
+  outcomes_ar       String?
+  agenda_en         Json?
+  agenda_ar         Json?
+  examination_en    String?
+  examination_ar    String?
+  accreditation_en  String
+  features_en       String[]
+  features_ar       String[]
+  paymentMethods    String[]
+  category          String
+  level             CourseLevel
+  location          CourseLocation[]   
+  delegatesEnrolled Int       @default(0)
+  fees              Float?
+  startDate         DateTime?
+  endDate           DateTime?
+  language          String[]          
 
   // Relations
-  payments Payment[]
-  enrollments Enrollment[]
-  wishlists       Wishlist[]
-  cartItems Cart[]
+  instructor     User?       @relation(fields: [instructorId], references: [id])
+  instructorId   Int?
+  payments       Payment[]
+  enrollments    Enrollment[]
+  wishlists      Wishlist[]
+  cartItems      Cart[]
+
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
   @@map("courses")
 }
+
 
 
 

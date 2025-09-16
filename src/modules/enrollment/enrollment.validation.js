@@ -1,6 +1,6 @@
 
 import joi from 'joi'
-import { allowedEnrollmentModes } from '../../constants/enums.js'
+import { allowedEnrollmentModes } from '../../Utilities/enums.js'
 
 export const enrollInCourseSchema = {
   params: joi.object({
