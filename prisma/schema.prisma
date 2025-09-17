@@ -50,13 +50,7 @@ enum CourseLocation {
   HYBRID
 }
 
-// Course Level Enum  
-enum CourseLevel {
-  FOUNDATION
-  INTERNAL_AUDITOR
-  LEAD_AUDITOR
-  LEAD_IMPLEMENTER
-}
+
 
 // Course Model
 model Course {
@@ -66,8 +60,8 @@ model Course {
   name_ar           String
   duration_en       String
   duration_ar       String
-  overview_en       String?
-  overview_ar       String?
+  overview_en       String
+  overview_ar       String
   objectives_en     String[]
   objectives_ar     String[]
   outcomes_en       String?
@@ -81,7 +75,7 @@ model Course {
   features_ar       String[]
   paymentMethods    String[]
   category          String
-  level             CourseLevel
+  level             String
   location          CourseLocation[]   
   delegatesEnrolled Int       @default(0)
   fees              Float?
