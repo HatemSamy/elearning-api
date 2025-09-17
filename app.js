@@ -23,36 +23,44 @@ const baseUrl = process.env.BASEURL
 
 
 const allowedOrigins = [
-    "http://localhost:5173",      
-  ];
-// CORS Configuration - Open for all origins
+  "http://localhost:5173",     
+  "http://127.0.0.1:5173",
+  "http://194.238.22.100:5173",     
+  "http://194.238.22.100:3000", 
+  undefined,                   
+  null
+];
+
 const corsOptions = {
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true); 
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
-  };
-
-// Apply CORS middleware
-app.use(cors(corsOptions))
-
-// Session configuration for OAuth
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'your-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: process.env.NODE_ENV === 'production', 
-        maxAge: 24 * 60 * 60 * 1000 
+  origin: function (origin, callback) {
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
     }
-}))
+  },
+  credentials: true, 
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"]
+};
+
+// Apply CORS
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+
+// Session config for OAuth
+app.use(session({
+  secret: process.env.SESSION_SECRET || "secret-key",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === "production", 
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    maxAge: 24 * 60 * 60 * 1000
+  }
+}));
+
+
 
 
 app.use(passport.initialize())
