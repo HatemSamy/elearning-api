@@ -28,6 +28,8 @@ export const createCourseSchema = {
     location: joi.array().items(joi.string().valid(...Object.values(CourseLocation))).min(1).required(),
     delegatesEnrolled: joi.number().integer().required(),
     fees: joi.string().required(),
+    type: joi.string().valid("FREE", "PAID").default("PAID"),
+    discount: joi.number().min(0).max(100).optional().default(0),
     startDate: joi.date().required(),
     endDate: joi.date().required(),
     language: joi.array().items(joi.string().valid("English", "Arabic")).min(1).required(),

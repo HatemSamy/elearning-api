@@ -22,7 +22,10 @@ router.post(
 // Get all courses
 router.get('/', createController.getCourses)
 
-router.get('/filterBYCategoryAndLevel', createController.getCoursesByCategoryAndLevel);
+router.get('/filters', createController.filterCourses)
+
+
+router.get('/filter-by-category-level', createController.getCoursesByCategoryAndLevel);
 
 // Get course Details
 router.get('/:id', validation(getCourseByIdSchema), createController.getCourseDetails)
