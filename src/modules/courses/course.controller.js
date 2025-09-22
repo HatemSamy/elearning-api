@@ -152,39 +152,33 @@ export const getCoursesByCategoryAndLevel = asyncHandler(async (req, res, next) 
 
   // Fetch courses matching category and level
   const courses = await prisma.course.findMany({
-  where: {
-    category,
-    level,
-  },
-  select: {
-    id: true,
-    name_en: true,
-    name_ar: true,
-    duration_en: true,
-    duration_ar: true,
-    overview_en: true,
-    overview_ar: true,
-    image: true,
-    paymentMethods: true,
-    category: true,
-    level: true,
-    delegatesEnrolled: true,
-    language: true,
-    location: true,
-    fees: true,
-    discount: true,
-   
-    // nested select for instructor
-    instructor: {
-      select: {
-        id: true,
-        username: true,
-        email: true
+    where: { category, level },
+    select: {
+      id: true,
+      name_en: true,
+      name_ar: true,
+      duration_en: true,
+      duration_ar: true,
+      overview_en: true,
+      overview_ar: true,
+      image: true,
+      paymentMethods: true,
+      category: true,
+      level: true,
+      delegatesEnrolled: true,
+      language: true,
+      location: true,
+      fees: true,
+      discount: true,
+      instructor: {
+        select: {
+          id: true,
+          username: true,
+          email: true
+        }
       }
     }
-  }
-});
-
+  });
 
   if (!courses || courses.length === 0) {
     return res.status(404).json({
@@ -207,6 +201,13 @@ export const getCoursesByCategoryAndLevel = asyncHandler(async (req, res, next) 
 
 
 
+
+  
+
+
+
+
+
 export const filterCourses = asyncHandler(async (req, res, next) => {
   const { 
     lang = "en", 
@@ -217,8 +218,6 @@ export const filterCourses = asyncHandler(async (req, res, next) => {
     minDuration, 
     maxDuration 
   } = req.query;
-
-  // بناء الشرط الديناميكي
   const where = {};
 
   if (category) {
@@ -270,3 +269,89 @@ export const filterCourses = asyncHandler(async (req, res, next) => {
     courses: formattedCourses
   });
 });
+
+
+
+
+
+
+// GET course content
+export const getCourseContent = asyncHandler(async (req, res) => {
+    const courseId = parseInt(req.params.id);
+    const userId = req.user.id;
+    const { lang = "en" } = req.query;
+    const isArabic = lang === "ar";
+
+    const enrollment = await prisma.enrollment.findFirst({
+        where: { courseId, userId },
+    });
+
+    if (!enrollment) {
+        return res.status(403).json({
+            success: false,
+            message: "You are not enrolled in this course",
+        });
+    }
+
+    const course = await prisma.course.findUnique({
+        where: { id: courseId },
+        select: {
+            id: true,
+            name_en: true,
+            name_ar: true,
+            category: true,
+            duration_en: true,
+            duration_ar: true,
+            instructor: {
+                select: {
+                    id: true,
+                    username: true,
+                    email: true,
+                },
+            },
+            lectures: {
+                select: {
+                    id: true,
+                    title_en: true,
+                    title_ar: true,
+                    number: true,
+                    duration: true,
+                    overview_en: true,
+                    overview_ar: true,
+                    videoUrl: true,
+                },
+                orderBy: { number: "asc" },
+            },
+        },
+    });
+
+    if (!course) {
+        const error = new Error("Course not found");
+        error.cause = 404;
+        throw error;
+    }
+
+ 
+    const response = {
+        id: course.id,
+        name: isArabic ? course.name_ar : course.name_en,
+        duration: isArabic ? course.duration_ar : course.duration_en,
+        category: course.category,
+        instructor: course.instructor,
+        lectures: course.lectures.map((lec) => ({
+            id: lec.id,
+            title: isArabic ? lec.title_ar : lec.title_en,
+            overview: isArabic ? lec.overview_ar : lec.overview_en,
+            number: lec.number,
+            duration: lec.duration,
+            videoUrl: lec.videoUrl,
+        })),
+    };
+
+    res.status(200).json({
+        success: true,
+        data: response,
+    });
+});
+
+

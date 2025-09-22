@@ -78,7 +78,7 @@ model Course {
   accreditation_en  String
   features_en       String[]
   features_ar       String[]
-  paymentMethods    String[]?
+  paymentMethods    String[]
   category          String
   level             String
   location          CourseLocation[]   
@@ -93,6 +93,7 @@ model Course {
   // Relations
   instructor     User?       @relation(fields: [instructorId], references: [id])
   instructorId   Int?
+  lectures       Lecture[] 
   payments       Payment[]
   enrollments    Enrollment[]
   wishlists      Wishlist[]
@@ -104,6 +105,20 @@ model Course {
 }
 
 
+// Lecture Model
+model Lecture {
+  id          Int     @id @default(autoincrement())
+  title_en    String
+  title_ar    String
+  overview_en String
+  overview_ar String
+  duration    Int
+  videoUrl    String?
+  number      Int
+  courseId    Int
+  course      Course @relation(fields: [courseId], references: [id])
+}
+
 
 
 // Enrollment Mode Enum
@@ -113,6 +128,7 @@ enum EnrollmentMode {
   ONLINE
   HYBRID
 }
+
 
 
 // Enrollment Model
