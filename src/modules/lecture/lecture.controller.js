@@ -3,51 +3,40 @@ import { asyncHandler } from '../../middleware/errorHandling.js'
 const prisma = new PrismaClient()
 
 
+// controllers/lectureController.js
 export const addLecture = asyncHandler(async (req, res, next) => {
   const { title_en, title_ar, overview_en, overview_ar, duration } = req.body;
-  const { courseId } = req.params;
+  const courseId = parseInt(req.params.courseId);
 
-  const course = await prisma.course.findUnique({
-    where: { id: Number(courseId) },
-  });
-
+  const course = await prisma.course.findUnique({ where: { id: courseId } });
   if (!course) {
-    return next(new Error("Course not found", { cause: 404 }));
+    throw new Error("Course not found", { cause: 404 });
   }
 
   const lastLecture = await prisma.lecture.findFirst({
-    where: { courseId: Number(courseId) },
+    where: { courseId },
     orderBy: { number: "desc" },
   });
-
   const nextNumber = lastLecture ? lastLecture.number + 1 : 1;
+  const videoUrl = req.file
+    ? `${req.protocol}://${req.get("host")}/uploads/course_lectures/course_${courseId}/lectures/${req.file.filename}`
+    : null;
 
-  let videoUrl = null;
-  if (req.file) {
-    videoUrl = `/uploads/lectures/${req.file.filename}`;
-  }
-
-  // 4. إنشاء المحاضرة
   const lecture = await prisma.lecture.create({
     data: {
       title_en,
       title_ar,
       overview_en,
       overview_ar,
-      duration: Number(duration),
-      videoUrl,
+      duration: duration ? parseInt(duration) : 0,
       number: nextNumber,
-      courseId: Number(courseId),
+      videoUrl,
+      courseId,
     },
   });
 
-  res.status(201).json({
-    success: true,
-    message: "Lecture created successfully",
-    data: lecture,
-  });
+  res.status(201).json({ success: true, lecture });
 });
-
 
 
 

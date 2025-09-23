@@ -1,22 +1,28 @@
 import express from "express";
-import { HME, myMulter } from "../../services/multer.js";
-import { validation } from "../../middleware/validation.js";
 import * as lectureController from "./lecture.controller.js";
 import * as validators from "./lecture.validation.js";
 import { auth } from "../../middleware/auth.js";
+import { videoMulter } from "../../services/multer.js";
+import { validation } from "../../middleware/validation.js";
 
 
 const router = express.Router();
 
-// POST /api/lectures
+// POST /api/lectures/:courseId
 router.post(
-"/:courseId",
+  "/:courseId",
   auth(),
-  myMulter("lectures").single("video"), 
-  HME,
+  (req, res, next) => {
+    const courseId = req.params.courseId;
+    videoMulter(courseId).single("video")(req, res, next);
+  },
   validation(validators.addLectureSchema),
   lectureController.addLecture
 );
+
+
+
+
 
 // GET /lectures/:lectureId
 router.get("/:lectureId", auth(), lectureController.getLectureDetails);

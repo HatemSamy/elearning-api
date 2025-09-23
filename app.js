@@ -66,9 +66,12 @@ app.use(passport.initialize())
 app.use(passport.session())
 
 //convert Buffer Data
-app.use(express.json({ limit: '10mb' }))
-app.use(express.urlencoded({ extended: true, limit: '10mb' }))
-
+app.use(express.json({ limit: '50mb' }))
+app.use(express.urlencoded({ extended: true, limit: '50mb' }))
+app.use((req, res, next) => {
+  req.setTimeout(1 * 60 * 1000); 
+  next();
+});
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 

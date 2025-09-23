@@ -26,4 +26,3 @@ export const translateCourse = (course, lang = "en") => ({
   updatedAt: course.updatedAt
 });
 
-
