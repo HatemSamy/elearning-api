@@ -3,7 +3,10 @@ export const autoParseJsonMiddleware = (req, res, next) => {
     "objectives_en", "objectives_ar",
     "agenda_en", "agenda_ar",
     "features_en", "features_ar",
-    "paymentMethods", "location", "language"
+    "paymentMethods", "location", "language",
+    "whoShouldAttend_en", "whoShouldAttend_ar",
+    "prerequisites_en", "prerequisites_ar",
+    "outcomes_en", "outcomes_ar"   
   ];
 
   jsonFields.forEach((field) => {
@@ -21,3 +24,5 @@ export const autoParseJsonMiddleware = (req, res, next) => {
 
   next();
 };
+
+

@@ -95,6 +95,8 @@ app.use(`${baseUrl}/users`, indexRouter.userRouter)
 app.use(`${baseUrl}/wishlist`, indexRouter.WishlistRouter)
 app.use(`${baseUrl}/cart`, indexRouter.cartRouter)
 app.use(`${baseUrl}/lecture`, indexRouter.lectureRouter)
+app.use(`${baseUrl}/instructor`, indexRouter.instructorRouter)
+
 
 
 app.get("/Welcome_API", (req, res) => {

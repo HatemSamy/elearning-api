@@ -9,12 +9,11 @@ import {
     getPasswordResetSuccessTemplate, 
     EMAIL_SUBJECTS 
 } from '../../services/emailTemplates.js'
-
 const prisma = new PrismaClient()
 
 const generateToken = (user) => {
     return jwt.sign(
-        { id: user.id, email: user.email },
+        { id: user.id, email: user.email,role: user.role},
         process.env.tokenSignature,
         { expiresIn: process.env.JWT_EXPIRES_IN }
     )
