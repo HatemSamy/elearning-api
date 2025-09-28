@@ -1,12 +1,16 @@
 import { PrismaClient } from '@prisma/client'
 import { asyncHandler } from '../../middleware/errorHandling.js'
+import { formatPurchase } from '../../Utilities/reusable.helper.js'
+
 
 const prisma = new PrismaClient()
 
 
-// Create Payment (Legacy - for backward compatibility)
+// Create Payment
 export const createPayment = asyncHandler(async (req, res, next) => {
-    const { userId, courseId, amount } = req.body
+    const { courseId, amount } = req.body
+    const userId = req.user.id;
+console.log(userId);
 
     // Check if user exists
     const user = await prisma.user.findUnique({
@@ -58,7 +62,7 @@ export const createPayment = asyncHandler(async (req, res, next) => {
             course: {
                 select: {
                     id: true,
-                    name: true,
+                    name_en: true,
                     fees: true,
                     image: true
                 }
@@ -126,45 +130,38 @@ export const getAllPayments = asyncHandler(async (req, res, next) => {
     
 })
 
-// Update Payment Status
-export const updatePaymentStatus = asyncHandler(async (req, res, next) => {
-    const { id } = req.params
-    const { status } = req.body
 
-    // Check if payment exists
-    const existingPayment = await prisma.payment.findUnique({
-        where: { id: parseInt(id) }
-    })
+// Get_PurchaseHistory
+export const getPurchaseHistory = asyncHandler(async (req, res, next) => {
+  const userId = req.user.id;
+  const lang = req.query.lang || "en";
 
-    if (!existingPayment) {
-        return next(new Error('Payment not found', { cause: 404 }))
-    }
+  const payments = await prisma.payment.findMany({
+    where: { userId},
+    include: {
+      course: true
+    },
+    orderBy: { createdAt: "desc" }
+  });
 
-    // Update payment status
-    const updatedPayment = await prisma.payment.update({
-        where: { id: parseInt(id) },
-        data: { status },
-        include: {
-            user: {
-                select: {
-                    id: true,
-                    username: true,
-                    email: true
-                }
-            },
-            course: {
-                select: {
-                    id: true,
-                    title: true,
-                    price: true
-                }
-            }
-        }
-    })
+  if (!payments || payments.length === 0) {
+    return res.status(200).json({
+      success: true,
+      count: 0,
+      message: lang === "ar" 
+        ? "لا يوجد أي عمليات شراء مسجلة" 
+        : "No purchase history found"
+    });
+  }
 
-    res.status(200).json({
-        success: true,
-        message: 'Payment status updated successfully',
-        data: updatedPayment
-    })
-})
+  const formattedPayments = payments.map(p => formatPurchase(p, lang));
+
+  res.status(200).json({
+    success: true,
+    count: formattedPayments.length,
+    history: formattedPayments
+  });
+});
+
+
+

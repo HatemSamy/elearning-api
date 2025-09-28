@@ -1,13 +1,12 @@
 import path from 'path'
 import { fileURLToPath } from 'url'
-import fs from "fs";
 import dotenv from 'dotenv'
 import cors from 'cors'
 import session from 'express-session'
 import passport from './config/passport.js'
 //set directory dirname 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-dotenv.config({ path: path.join(__dirname, './config/.env') })
+dotenv.config(); 
 import express from 'express'
 import * as indexRouter from './src/modules/index.router.js'
 import { connectDB } from './config/connection.js'
@@ -15,7 +14,7 @@ import { globalErrorHandling } from './src/middleware/errorHandling.js'
 const app = express()
 
 // setup port and the baseUrl
-const port = process.env.PORT || 5000
+const PORT = process.env.PORT || 3001
 const baseUrl = process.env.BASEURL
 
 
@@ -23,45 +22,55 @@ const baseUrl = process.env.BASEURL
 
 
 const allowedOrigins = [
-    "http://localhost:5173",      
-  ];
-// CORS Configuration - Open for all origins
+  "http://194.238.22.100",       
+  "http://194.238.22.100:5173",  
+  "http://194.238.22.100:5000",  
+  undefined,
+  null
+];
+
 const corsOptions = {
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true); 
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
-  };
-
-// Apply CORS middleware
-app.use(cors(corsOptions))
-
-// Session configuration for OAuth
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'your-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: process.env.NODE_ENV === 'production', 
-        maxAge: 24 * 60 * 60 * 1000 
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log("Blocked by CORS:", origin); 
+      callback(new Error("Not allowed by CORS"));
     }
-}))
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"]
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+
+// Session config for OAuth
+app.use(session({
+  secret: process.env.SESSION_SECRET || "secret-key",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false,          
+    sameSite: "lax",        
+    maxAge: 24 * 60 * 60 * 1000 
+  }
+}));
+
+
 
 
 app.use(passport.initialize())
 app.use(passport.session())
 
 //convert Buffer Data
-app.use(express.json({ limit: '10mb' }))
-app.use(express.urlencoded({ extended: true, limit: '10mb' }))
-
+app.use(express.json({ limit: '50mb' }))
+app.use(express.urlencoded({ extended: true, limit: '50mb' }))
+app.use((req, res, next) => {
+  req.setTimeout(1 * 60 * 1000); 
+  next();
+});
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
@@ -84,6 +93,10 @@ app.use(`${baseUrl}/enrollment`, indexRouter.enrollmentRouter)
 app.use(`${baseUrl}/users`, indexRouter.userRouter)
 app.use(`${baseUrl}/wishlist`, indexRouter.WishlistRouter)
 app.use(`${baseUrl}/cart`, indexRouter.cartRouter)
+app.use(`${baseUrl}/lecture`, indexRouter.lectureRouter)
+app.use(`${baseUrl}/instructor`, indexRouter.instructorRouter)
+
+
 
 app.get("/Welcome_API", (req, res) => {
     const filePath = path.join(__dirname, "src", "templates", "banner.html");
@@ -104,4 +117,4 @@ app.use('*', (req, res, next) => {
 connectDB()
 // Handling Error
 app.use(globalErrorHandling)
-app.listen(port, () => console.log(`Example app listening on port ${port}!`))
+app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));

@@ -3,16 +3,6 @@ import joi from 'joi'
 // Create payment validation schema
 export const createPaymentSchema = {
     body: joi.object({
-        userId: joi.number()
-            .integer()
-            .positive()
-            .required()
-            .messages({
-                'number.base': 'User ID must be a number',
-                'number.integer': 'User ID must be an integer',
-                'number.positive': 'User ID must be a positive number',
-                'any.required': 'User ID is required'
-            }),
         
         courseId: joi.number()
             .integer()

@@ -1,14 +1,20 @@
 import { PrismaClient } from '@prisma/client'
 import { asyncHandler } from '../../middleware/errorHandling.js'
+import { translateCourse } from '../../Utilities/reusable.helper.js';
 const prisma = new PrismaClient()
 
 
 
+// Add to Wishlist
 export const addToWishlist = asyncHandler(async (req, res, next) => {
   const courseId = Number(req.params.courseId);
   const userId = req.user.id;
+  const lang = req.query.lang || "en";
 
-  const course = await prisma.course.findUnique({ where: { id: courseId } });
+  const course = await prisma.course.findUnique({
+    where: { id: courseId },
+  });
+
   if (!course) {
     return next(new Error("Course not found", { cause: 404 }));
   }
@@ -26,11 +32,13 @@ export const addToWishlist = asyncHandler(async (req, res, next) => {
 
   const wishlist = await prisma.wishlist.create({
     data: { userId, courseId },
-    include: {
+    select: {
+      id: true,
       course: {
         select: {
           id: true,
-          name: true,
+          name_en: true,
+          name_ar: true,
           image: true,
           fees: true,
         },
@@ -41,40 +49,51 @@ export const addToWishlist = asyncHandler(async (req, res, next) => {
   res.status(201).json({
     success: true,
     message: "Course added to wishlist",
-    data: wishlist,
+    data: {
+      id: wishlist.id,
+      course: translateCourse(wishlist.course, lang),
+    },
   });
 });
 
 
-
+// Get Wishlist
 export const getWishlist = asyncHandler(async (req, res, next) => {
   const userId = req.user.id;
+  const lang = req.query.lang || "en";
+
   const wishlist = await prisma.wishlist.findMany({
     where: { userId },
-    include: {
+    select: {
+      id: true,
       course: {
         select: {
           id: true,
-          name: true,
+          name_en: true,
+          name_ar: true,
           image: true,
           fees: true,
         },
       },
     },
   });
- if (!wishlist) {
-    return next(new Error("not found any wishlist for you", { cause: 409 }));
+
+  if (!wishlist || wishlist.length === 0) {
+    return next(new Error("No wishlist found for you", { cause: 404 }));
   }
 
   res.status(200).json({
     success: true,
-    data: wishlist,
+    count: wishlist.length,
+    data: wishlist.map(item => ({
+      id: item.id,
+      course: translateCourse(item.course, lang),
+    })),
   });
 });
 
 
-
-
+// Remove from Wishlist
 export const removeFromWishlist = asyncHandler(async (req, res, next) => {
   const courseId = Number(req.params.courseId);
   const userId = req.user.id;
@@ -98,3 +117,4 @@ export const removeFromWishlist = asyncHandler(async (req, res, next) => {
     message: "Course removed from wishlist",
   });
 });
+

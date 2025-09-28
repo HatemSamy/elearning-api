@@ -84,8 +84,9 @@ export const getInstructorCourses = asyncHandler(async (req, res, next) => {
     include: {
       user: {
         select: {
+          id:true,
           username: true,
-          avatar: true,
+          avatar: true
         },
       },
     },
@@ -156,9 +157,8 @@ export const getInstructorAccount = asyncHandler(async (req, res, next) => {
     include: {
       user: {
         select: {
-          id:true,
           username: true,
-          avatar: true
+          avatar: true,
         },
       },
     },

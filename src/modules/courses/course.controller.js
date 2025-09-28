@@ -1,66 +1,119 @@
 import { PrismaClient } from '@prisma/client'
 import { asyncHandler } from '../../middleware/errorHandling.js'
-import { translateCourse } from '../../Utilities/reusable.helper.js';
+import { formatInstructor, translateCourse } from '../../Utilities/reusable.helper.js';
 const prisma = new PrismaClient()
 
+
+
 export const createCourse = asyncHandler(async (req, res, next) => {
-  const courseData = { ...req.body };
+  try {
+    const courseData = { ...req.body };
 
-  // Check if image uploaded
-  if (!req.file) {
-    return next(new Error("Course image is required", { cause: 400 }));
-  }
-
-  const imageUrl = `${req.protocol}://${req.get("host")}/uploads/course/${req.file.filename}`;
-
-  const course = await prisma.course.create({
-    data: {
-      image: imageUrl,
-      name_en: courseData.name_en,
-      name_ar: courseData.name_ar,
-      duration_en: courseData.duration_en,
-      duration_ar: courseData.duration_ar,
-      overview_en: courseData.overview_en,
-      overview_ar: courseData.overview_ar,
-      objectives_en: courseData.objectives_en,   
-      objectives_ar: courseData.objectives_ar,
-      outcomes_en: courseData.outcomes_en,
-      outcomes_ar: courseData.outcomes_ar,
-      agenda_en: courseData.agenda_en,
-      agenda_ar: courseData.agenda_ar,
-      examination_en: courseData.examination_en,
-      examination_ar: courseData.examination_ar,
-      accreditation_en: courseData.accreditation_en,
-      features_en: courseData.features_en,
-      features_ar: courseData.features_ar,
-      paymentMethods: courseData.paymentMethods,
-      category: courseData.category,
-      level: courseData.level,
-      location: courseData.location,
-      enrollmentMode: courseData.enrollmentMode,
-      delegatesEnrolled: Number(courseData.delegatesEnrolled) || 0,
-      fees: Number(courseData.fees) || 0,
-      startDate: courseData.startDate ? new Date(courseData.startDate) : null,
-      endDate: courseData.endDate ? new Date(courseData.endDate) : null,
-      language: courseData.language,
-      instructorId: courseData.instructorId ? Number(courseData.instructorId) : null
-    },
-    include: {
-      instructor: {
-        select: { id: true, username: true, email: true }
-      }
+    if (!req.file) {
+      return next(new Error("Course image is required", { cause: 400 }));
     }
-  });
 
-  res.status(201).json({
-    success: true,
-    message: "Course created successfully",
-    data: course
-  });
+    const imageUrl = `${req.protocol}://${req.get("host")}/uploads/course/${req.file.filename}`;
+
+    const delegatesEnrolled = courseData.delegatesEnrolled ? Number(courseData.delegatesEnrolled) : 0;
+    const fees = courseData.fees ? Number(courseData.fees) : 0;
+    const discount = courseData.discount ? Number(courseData.discount) : 0;
+
+    const startDate = courseData.startDate ? new Date(courseData.startDate) : null;
+    const endDate = courseData.endDate ? new Date(courseData.endDate) : null;
+
+    const instructorId = Number(courseData.instructorId);
+
+    const course = await prisma.course.create({
+      data: {
+        image: imageUrl,
+        name_en: courseData.name_en,
+        name_ar: courseData.name_ar,
+        duration_en: courseData.duration_en,
+        duration_ar: courseData.duration_ar,
+        overview_en: courseData.overview_en,
+        overview_ar: courseData.overview_ar,
+        objectives_en: courseData.objectives_en,
+        objectives_ar: courseData.objectives_ar,
+        outcomes_en: courseData.outcomes_en,
+        outcomes_ar: courseData.outcomes_ar,
+        agenda_en: courseData.agenda_en,
+        agenda_ar: courseData.agenda_ar,
+        examination_en: courseData.examination_en,
+        examination_ar: courseData.examination_ar,
+        accreditation_en: courseData.accreditation_en,
+        features_en: courseData.features_en,
+        features_ar: courseData.features_ar,
+        paymentMethods: courseData.paymentMethods,
+        category: courseData.category,
+        level: courseData.level,
+        location: courseData.location,
+        delegatesEnrolled,
+        fees,
+        discount,
+        startDate,
+        endDate,
+        language: courseData.language,
+        whoShouldAttend_en: courseData.whoShouldAttend_en,
+        whoShouldAttend_ar: courseData.whoShouldAttend_ar,
+        prerequisites_en: courseData.prerequisites_en,
+        prerequisites_ar: courseData.prerequisites_ar,
+        includes_en: courseData.includes_en,
+        includes_ar: courseData.includes_ar,
+        instructor: {
+          connect: { id: instructorId },
+        },
+      },
+      include: {
+        instructor: {
+          select: {
+            id: true,
+            specialization: true,
+            bio: true,
+            user: {
+              select: {
+                username: true,
+                email: true,
+                avatar: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    const formattedCourse = {
+      id: course.id,
+      name_en: course.name_en,
+      name_ar: course.name_ar,
+      image: course.image,
+      category: course.category,
+      level: course.level,
+      fees: course.fees,
+      discount: course.discount,
+      startDate: course.startDate,
+      endDate: course.endDate,
+      instructor: course.instructor
+        ? {
+            id: course.instructor.id,
+            specialization: course.instructor.specialization,
+            bio: course.instructor.bio,
+            username: course.instructor.user.username,
+            email: course.instructor.user.email,
+            avatar: course.instructor.user.avatar,
+          }
+        : null,
+    };
+
+    res.status(201).json({
+      success: true,
+      message: "Course created successfully",
+      data: formattedCourse,
+    });
+  } catch (error) {
+    next(error);
+  }
 });
-
-
-
+;
 
 
 
@@ -72,7 +125,14 @@ export const getCourseDetails = asyncHandler(async (req, res, next) => {
     where: { id: parseInt(id) },
     include: {
       instructor: {
-        select: { id: true, username: true, email: true }
+        include: {
+          user: {
+            select: {
+              username: true,
+              email: true
+            }
+          }
+        }
       }
     }
   });
@@ -90,18 +150,223 @@ export const getCourseDetails = asyncHandler(async (req, res, next) => {
 
 
 
-
-
-
-
-
 export const getCourses = asyncHandler(async (req, res, next) => {
   const lang = req.query.lang || "en";
 
   const courses = await prisma.course.findMany({
-    include: { instructor: { select: { id: true, username: true, email: true } } }
+    select: {
+      id: true,
+      name_en: true,
+      name_ar: true,
+      duration_en: true,
+      duration_ar: true,
+      overview_en: true,
+      overview_ar: true,
+      fees: true,
+      discount: true,
+      image: true,
+      category: true,
+      level: true,
+      language: true,
+      location: true,
+      delegatesEnrolled: true,
+      instructor: {
+        select: {
+          id: true,
+          specialization: true,
+          bio: true,
+          user: {
+            select: {
+              username: true,
+              avatar: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
   });
-  if (!courses) return next(new Error("not found Courses", { cause: 404 }));
+
+  if (!courses || courses.length === 0) {
+    return next(new Error("No courses found", { cause: 404 }));
+  }
+
+  const formattedCourses = courses.map((course) => {
+    const translated = translateCourse(course, lang);
+
+    return {
+      id: translated.id,
+      name: translated.name,
+      duration: translated.duration,
+      overview: translated.overview,
+      fees: translated.fees,
+      discount: translated.discount,
+      image: translated.image,
+      category: translated.category,
+      level: translated.level,
+      language: translated.language,
+      location: translated.location,
+      delegatesEnrolled: translated.delegatesEnrolled,
+      instructor: course.instructor
+        ? {
+            id: course.instructor.id,
+            username: course.instructor.user?.username || null,
+            avatar: course.instructor.user?.avatar || null,
+            specialization: course.instructor.specialization || null,
+          }
+        : null,
+    };
+  });
+
+  res.status(200).json({
+    success: true,
+    count: formattedCourses.length,
+    data: formattedCourses,
+  });
+});
+
+
+
+
+export const getCoursesByCategoryAndLevel = asyncHandler(async (req, res, next) => {
+  const { category, level, lang = "en" } = req.query;
+
+  if (!category || !level) {
+    return res.status(400).json({
+      success: false,
+      message: "Category and level are required",
+    });
+  }
+
+  const courses = await prisma.course.findMany({
+    where: { category, level },
+    select: {
+      id: true,
+      name_en: true,
+      name_ar: true,
+      duration_en: true,
+      duration_ar: true,
+      overview_en: true,
+      overview_ar: true,
+      image: true,
+      category: true,
+      level: true,
+      delegatesEnrolled: true,
+      language: true,
+      location: true,
+      fees: true,
+      discount: true,
+      instructor: {
+        select: {
+          id: true,
+          specialization: true,
+          user: {
+            select: {
+              username: true,
+              avatar: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (!courses || courses.length === 0) {
+    return res.status(404).json({
+      success: false,
+      message: "No courses found for this category and level",
+    });
+  }
+
+  const formattedCourses = courses.map((course) => {
+    const translated = translateCourse(course, lang);
+    return {
+      id: translated.id,
+      name: translated.name,
+      duration: translated.duration,
+      overview: translated.overview,
+      fees: translated.fees,
+      discount: translated.discount,
+      image: translated.image,
+      category: translated.category,
+      level: translated.level,
+      language: translated.language,
+      location: translated.location,
+      delegatesEnrolled: translated.delegatesEnrolled,
+      instructor: course.instructor
+        ? {
+            id: course.instructor.id,
+            username: course.instructor.user?.username || null,
+            avatar: course.instructor.user?.avatar || null,
+            specialization: course.instructor.specialization || null,
+          }
+        : null,
+    };
+  });
+
+  res.status(200).json({
+    success: true,
+    count: formattedCourses.length,
+    data: formattedCourses,
+  });
+});
+
+
+
+
+export const filterCourses = asyncHandler(async (req, res, next) => {
+  const { 
+    lang = "en", 
+    category, 
+    level, 
+    minPrice, 
+    maxPrice, 
+    minDuration, 
+    maxDuration 
+  } = req.query;
+  const where = {};
+
+  if (category) {
+    where.category = category;
+  }
+
+  if (level) {
+    where.level = level;
+  }
+
+  if (minPrice || maxPrice) {
+    where.fees = {};
+    if (minPrice) where.fees.gte = Number(minPrice);
+    if (maxPrice) where.fees.lte = Number(maxPrice);
+  }
+
+  if (minDuration || maxDuration) {
+    where.duration_en = {}; 
+    if (minDuration) where.duration_en.gte = Number(minDuration);
+    if (maxDuration) where.duration_en.lte = Number(maxDuration);
+  }
+
+  const courses = await prisma.course.findMany({
+    where,
+    select: {
+      id: true,
+      name_en: true,
+      name_ar: true,
+      fees: true,
+      duration_en: true,
+      duration_ar: true,
+      category: true,
+      level: true,
+      instructor: { 
+        select: { id: true, username: true, email: true } 
+      }
+    }
+  });
+
+  if (!courses.length) {
+    return next(new Error("No courses found with applied filters", { cause: 404 }));
+  }
 
   const formattedCourses = courses.map((course) => translateCourse(course, lang));
 
@@ -114,87 +379,63 @@ export const getCourses = asyncHandler(async (req, res, next) => {
 
 
 
+export const getCourseContent = asyncHandler(async (req, res) => {
+  const courseId = parseInt(req.params.id);
+  const userId = req.user.id;
+  const { lang = "en" } = req.query;
+  const isArabic = lang === "ar";
 
-
-
-
-
-
-
-
-
-// export const getCoursesByCategoryAndLevel = asyncHandler(async (req, res, next) => {
-//     const { category, level } = req.query;
-  
-//     const courses = await prisma.course.findMany({
-//       where: {
-//         category: category,   
-//         level: level          
-//       },
-//       select: {
-//         id: true,
-//         name: true,
-//         category: true,
-//         level: true,
-//         fees: true,
-//         image: true,
-//         duration: true
-//       }
-//     });
-  
-
-//     if (!courses || courses.length === 0) {
-//         return res.status(404).json({
-//           success: false,
-//           message: "No courses found for this category and level"
-//         });
-//       }
-
-//     res.status(200).json({
-//       success: true,
-//       count: courses.length,
-//       data: courses
-//     });
-//   });
-  
-
-
-
-export const getCoursesByCategoryAndLevel = asyncHandler(async (req, res, next) => {
-  const { category, level } = req.query;
-  const lang = req.lang; // جاي من middleware
-
-  if (!category || !level) {
-    return res.status(400).json({
-      success: false,
-      message: "Category and level are required"
-    });
-  }
-
-  const courses = await prisma.course.findMany({
-    where: {
-      category: category,
-      level: level
-    },
-    include: {
-      instructor: {
-        select: { id: true, username: true, email: true }
-      }
-    }
+  const enrollment = await prisma.enrollment.findFirst({
+    where: { courseId, userId },
   });
 
-  if (!courses || courses.length === 0) {
-    return res.status(404).json({
+  if (!enrollment) {
+    return res.status(403).json({
       success: false,
-      message: "No courses found for this category and level"
+      message: "You are not enrolled in this course",
     });
   }
 
-  const formattedCourses = courses.map((course) => translateCourse(course, lang));
+  const course = await prisma.course.findUnique({
+    where: { id: courseId },
+    include: {
+      instructor: { include: { user: true } },
+      lectures: { orderBy: { number: "asc" } },
+    },
+  });
+
+  if (!course) {
+    const error = new Error("Course not found");
+    throw error;
+  }
+
+  const instructorInfo = course.instructor ? formatInstructor(course.instructor) : null;
+
+  const response = {
+    id: course.id,
+    name: isArabic ? course.name_ar : course.name_en,
+    overview: isArabic ? course.overview_ar : course.overview_en,
+    duration: isArabic ? course.duration_ar : course.duration_en,
+    category: course.category,
+    level: course.level,
+    language: course.language,
+    lectureCount: course.lectures.length,
+    instructor: instructorInfo,
+    lectures: course.lectures.map((lec) => ({
+      id: lec.id,
+      title: isArabic ? lec.title_ar : lec.title_en,
+      overview: isArabic ? lec.overview_ar : lec.overview_en,
+      number: lec.number,
+      duration: lec.duration,
+      videoUrl: lec.videoUrl,
+    })),
+  };
 
   res.status(200).json({
     success: true,
-    count: formattedCourses.length,
-    data: formattedCourses
+    data: response,
   });
 });
+
+
+

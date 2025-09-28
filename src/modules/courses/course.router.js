@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import * as createController from './course.controller.js'
+import * as courseController from './course.controller.js'
 import { validation } from '../../middleware/validation.js'
 import { createCourseSchema, getCourseByIdSchema } from './course.validation.js'
 import {auth} from '../../middleware/auth.js'
@@ -17,15 +17,22 @@ router.post(
   autoParseJsonMiddleware,     
   validation(createCourseSchema), 
   HME,                         
-  createController.createCourse
+  courseController.createCourse
 );
 // Get all courses
-router.get('/', createController.getCourses)
+router.get('/', courseController.getCourses)
 
-router.get('/filterBYCategoryAndLevel', createController.getCoursesByCategoryAndLevel);
+router.get('/filters', courseController.filterCourses)
+
+router.get('/filter-by-category-level', courseController.getCoursesByCategoryAndLevel);
+
+
+
+// GET /api/courses/:id/content
+router.get("/:id/content", auth(), courseController.getCourseContent);
+
 
 // Get course Details
-router.get('/:id', validation(getCourseByIdSchema), createController.getCourseDetails)
-
+router.get('/:id', validation(getCourseByIdSchema), courseController.getCourseDetails)
 
 export default router

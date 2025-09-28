@@ -22,6 +22,8 @@ export const EnrollmentMode = {
   HYBRID: "HYBRID"
 };
 
+
+
 // Array versions for validation
 export const allowedLocations = Object.values(CourseLocation);
 export const allowedLevels = Object.values(CourseLevel);

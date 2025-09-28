@@ -10,6 +10,13 @@ datasource db {
 
 
 
+// schema.prisma
+enum UserRole {
+  ADMIN
+  INSTRUCTOR
+  STUDENT
+}
+
 // User Model
 model User {
   id              Int      @id @default(autoincrement())
@@ -21,10 +28,12 @@ model User {
   avatar          String?  
   isEmailVerified Boolean  @default(false)
   authProvider    String   @default("local") // "local", "google"
+  role            UserRole @default(STUDENT)
   resetPasswordOTP String? 
   resetPasswordOTPExpires DateTime? 
   resetPasswordToken String? 
   resetPasswordTokenExpires DateTime? 
+  instructor Instructor?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -33,12 +42,29 @@ model User {
   wishlists       Wishlist[]
   cartItems Cart[]
   enrollments Enrollment[]
-  instructedCourses Course[] 
   paymentMethods PaymentMethod[]
   @@map("users")
 }
 
+//model Instructor
+model Instructor {
+  id              Int      @id @default(autoincrement())
+  userId          Int      @unique
+  bio             String?
+  specialization  String?        
+  social          Json?          
 
+ certifications  String[]   @default([])  
+  languages       String[]   @default([])  
+  yearsOfExperience Int?                     
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user            User       @relation(fields: [userId], references: [id])
+  courses         Course[]
+  @@map("instructors")
+}
 
 
 
@@ -50,13 +76,12 @@ enum CourseLocation {
   HYBRID
 }
 
-// Course Level Enum  
-enum CourseLevel {
-  FOUNDATION
-  INTERNAL_AUDITOR
-  LEAD_AUDITOR
-  LEAD_IMPLEMENTER
+
+enum CourseType {
+  FREE
+  PAID
 }
+
 
 // Course Model
 model Course {
@@ -66,43 +91,67 @@ model Course {
   name_ar           String
   duration_en       String
   duration_ar       String
-  overview_en       String?
-  overview_ar       String?
+  overview_en       String
+  overview_ar       String
   objectives_en     String[]
   objectives_ar     String[]
-  outcomes_en       String?
-  outcomes_ar       String?
+  outcomes_en       String[]   
+  outcomes_ar       String[]
   agenda_en         Json?
   agenda_ar         Json?
-  examination_en    String?
-  examination_ar    String?
+  examination_en    Json?
+  examination_ar    Json?
   accreditation_en  String
   features_en       String[]
   features_ar       String[]
+
+  whoShouldAttend_en String[]
+  whoShouldAttend_ar String[]
+  prerequisites_en   String[]
+  prerequisites_ar   String[]
+
+  includes_en       String[]   @default([])
+  includes_ar       String[]   @default([])
   paymentMethods    String[]
   category          String
-  level             CourseLevel
+  level             String
   location          CourseLocation[]   
   delegatesEnrolled Int       @default(0)
   fees              Float?
+  type      CourseType @default(PAID)
   startDate         DateTime?
   endDate           DateTime?
   language          String[]          
+  discount   Int   @default(0)
 
   // Relations
-  instructor     User?       @relation(fields: [instructorId], references: [id])
-  instructorId   Int?
+ instructor Instructor? @relation(fields: [instructorId], references: [id])
+ instructorId Int?
+  lectures       Lecture[] 
   payments       Payment[]
   enrollments    Enrollment[]
   wishlists      Wishlist[]
   cartItems      Cart[]
-
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
   @@map("courses")
 }
 
+
+// Lecture Model
+model Lecture {
+  id          Int     @id @default(autoincrement())
+  title_en    String
+  title_ar    String
+  overview_en String
+  overview_ar String
+  duration    Int
+  videoUrl    String?
+  number      Int
+  courseId    Int
+  course      Course @relation(fields: [courseId], references: [id])
+}
 
 
 
@@ -113,6 +162,7 @@ enum EnrollmentMode {
   ONLINE
   HYBRID
 }
+
 
 
 // Enrollment Model

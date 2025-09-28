@@ -7,6 +7,9 @@ import enrollmentRouter from './enrollment/enrollment.router.js'
 import userRouter from './user/user.router.js'
 import WishlistRouter from './wishlist/wishlist.router.js'
 import cartRouter from './cart/cart.router.js'
+import lectureRouter from './lecture/lecture.router.js'
+import instructorRouter from './instructor/instructor.router.js'
+
 
 
 
@@ -19,5 +22,7 @@ export {
     enrollmentRouter,
     userRouter,
     WishlistRouter,
-    cartRouter
+    cartRouter, 
+    lectureRouter,
+    instructorRouter
 }
