@@ -24,15 +24,15 @@ router.get('/', courseController.getCourses)
 
 router.get('/filters', courseController.filterCourses)
 
-
 router.get('/filter-by-category-level', courseController.getCoursesByCategoryAndLevel);
 
-// Get course Details
-router.get('/:id', validation(getCourseByIdSchema), courseController.getCourseDetails)
 
 
 // GET /api/courses/:id/content
 router.get("/:id/content", auth(), courseController.getCourseContent);
 
+
+// Get course Details
+router.get('/:id', validation(getCourseByIdSchema), courseController.getCourseDetails)
 
 export default router

@@ -54,6 +54,9 @@ model Instructor {
   specialization  String?        
   social          Json?          
 
+ certifications  String[]   @default([])  
+  languages       String[]   @default([])  
+  yearsOfExperience Int?                     
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -96,8 +99,8 @@ model Course {
   outcomes_ar       String[]
   agenda_en         Json?
   agenda_ar         Json?
-  examination_en    String?
-  examination_ar    String?
+  examination_en    Json?
+  examination_ar    Json?
   accreditation_en  String
   features_en       String[]
   features_ar       String[]
@@ -106,6 +109,9 @@ model Course {
   whoShouldAttend_ar String[]
   prerequisites_en   String[]
   prerequisites_ar   String[]
+
+  includes_en       String[]   @default([])
+  includes_ar       String[]   @default([])
   paymentMethods    String[]
   category          String
   level             String

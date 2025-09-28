@@ -8,6 +8,9 @@ export const createInstructorSchema = {
     phone: joi.string().optional(),
     bio: joi.string().optional(),
     specialization: joi.string().optional(),
-    social: joi.object().optional() 
+    social: joi.object().optional(),
+    certifications: joi.array().items(joi.string()).optional(), 
+    languages: joi.array().items(joi.string()).optional(),      
+    yearsOfExperience: joi.number().min(0).optional()          
   })
 };

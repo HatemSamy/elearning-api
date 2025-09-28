@@ -6,17 +6,21 @@ export const autoParseJsonMiddleware = (req, res, next) => {
     "paymentMethods", "location", "language",
     "whoShouldAttend_en", "whoShouldAttend_ar",
     "prerequisites_en", "prerequisites_ar",
-    "outcomes_en", "outcomes_ar"   
+    "outcomes_en", "outcomes_ar",
+    "includes_en", "includes_ar" ,
+    "examination_en", "examination_ar",
   ];
 
   jsonFields.forEach((field) => {
     if (req.body[field] && typeof req.body[field] === "string") {
       try {
         req.body[field] = JSON.parse(req.body[field]);
+        console.log(`Parsed ${field}:`, req.body[field]);
       } catch (err) {
         return res.status(400).json({ 
           success: false, 
-          message: `Invalid JSON format for field: ${field}` 
+          message: `Invalid JSON format for field: ${field}` ,
+          rawValue: req.body[field]
         });
       }
     }

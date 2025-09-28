@@ -1,9 +1,11 @@
 import { PrismaClient } from '@prisma/client'
 import { asyncHandler } from '../../middleware/errorHandling.js'
+import { formatInstructor } from '../../Utilities/reusable.helper.js';
 const prisma = new PrismaClient()
 
 
 // controllers/lectureController.js
+
 export const addLecture = asyncHandler(async (req, res, next) => {
   const { title_en, title_ar, overview_en, overview_ar, duration } = req.body;
   const courseId = parseInt(req.params.courseId);
@@ -39,51 +41,45 @@ export const addLecture = asyncHandler(async (req, res, next) => {
 });
 
 
-
-
 export const getLectureDetails = async (req, res, next) => {
   try {
     const { lectureId } = req.params;
     const { lang = "en" } = req.query; 
+    const isArabic = lang === "ar";
 
-  const lecture = await prisma.lecture.findUnique({
-  where: { id: parseInt(lectureId) },
-  select: {
-    id: true,
-    title_en: true,
-    title_ar: true,
-    overview_en: true,
-    overview_ar: true,
-    duration: true,
-    videoUrl: true,
-    number: true,
-    course: {
+    const lecture = await prisma.lecture.findUnique({
+      where: { id: parseInt(lectureId) },
       select: {
         id: true,
-        name_en: true,
-        name_ar: true,
-        duration_en: true,
-        duration_ar: true,
-        category: true,
-        instructor: {
+        title_en: true,
+        title_ar: true,
+        overview_en: true,
+        overview_ar: true,
+        duration: true,
+        videoUrl: true,
+        number: true,
+        course: {
           select: {
             id: true,
-            username: true,
-            email: true,
-            avatar: true,
+            name_en: true,
+            name_ar: true,
+            duration_en: true,
+            duration_ar: true,
+            category: true,
+            level: true,
+            language: true,
+            discount: true,
+            instructor: {
+              include: { user: true }, 
+            },
           },
         },
       },
-    },
-  },
-});
-
+    });
 
     if (!lecture) {
       return res.status(404).json({ message: "Lecture not found" });
     }
-
-    const isArabic = lang === "ar";
 
     const response = {
       id: lecture.id,
@@ -95,11 +91,14 @@ export const getLectureDetails = async (req, res, next) => {
       course: {
         id: lecture.course.id,
         name: isArabic ? lecture.course.name_ar : lecture.course.name_en,
-        duration: isArabic
-          ? lecture.course.duration_ar
-          : lecture.course.duration_en,
+        duration: isArabic ? lecture.course.duration_ar : lecture.course.duration_en,
         category: lecture.course.category,
-        instructor: lecture.course.instructor,
+        level: lecture.course.level,
+        language: lecture.course.language,
+        discount: lecture.course.discount,
+        instructor: lecture.course.instructor
+          ? formatInstructor(lecture.course.instructor)
+          : null,
       },
     };
 
@@ -111,5 +110,6 @@ export const getLectureDetails = async (req, res, next) => {
     next(err);
   }
 };
+
 
 

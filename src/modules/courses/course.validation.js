@@ -1,6 +1,10 @@
 import joi from 'joi'
 import { CourseLevel, CourseLocation } from '../../Utilities/enums.js';
 
+
+
+
+
 export const createCourseSchema = {
   body: joi.object({
     name_en: joi.string().required(),
@@ -19,9 +23,8 @@ export const createCourseSchema = {
     agenda_en: joi.object().unknown(true).required(),
     agenda_ar: joi.object().unknown(true).required(),
 
-    examination_en: joi.string().required(),
-    examination_ar: joi.string().required(),
-
+    examination_en: joi.object().unknown(true).required(),
+    examination_ar: joi.object().unknown(true).required(),
     accreditation_en: joi.string().required(),
 
     features_en: joi.array().items(joi.string()).min(1).required(),
@@ -52,6 +55,10 @@ export const createCourseSchema = {
    whoShouldAttend_ar: joi.array().items(joi.string()).min(1).required(),
    prerequisites_en: joi.array().items(joi.string()).min(1).required(),
    prerequisites_ar: joi.array().items(joi.string()).min(1).required(),
+
+   
+    includes_en: joi.array().items(joi.string()).min(1).required(),
+    includes_ar: joi.array().items(joi.string()).min(1).required(),
 
   })
 };

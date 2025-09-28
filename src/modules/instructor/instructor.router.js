@@ -15,4 +15,10 @@ router.post(
 router.get("/", auth(), InstructorController.getInstructors);
 
 
+ // Instructor courses (dynamic but specific)
+router.get("/:instructorId/courses", InstructorController.getInstructorCourses);
+
+router.get("/:instructorId", auth(), InstructorController.getInstructorAccount);
+
+
 export default router;

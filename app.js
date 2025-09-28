@@ -6,7 +6,6 @@ import session from 'express-session'
 import passport from './config/passport.js'
 //set directory dirname 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-// dotenv.config({ path: path.join(__dirname, './config/.env') })
 dotenv.config(); 
 import express from 'express'
 import * as indexRouter from './src/modules/index.router.js'
