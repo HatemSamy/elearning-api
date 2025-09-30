@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,241 +7,250 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-
-// schema.prisma
-enum UserRole {
-  ADMIN
-  INSTRUCTOR
-  STUDENT
-}
-
-// User Model
 model User {
-  id              Int      @id @default(autoincrement())
-  username        String
-  email           String   @unique
-  password        String?  
-  phone           String?  
-  googleId        String?  @unique // Google OAuth ID
-  avatar          String?  
-  isEmailVerified Boolean  @default(false)
-  authProvider    String   @default("local") // "local", "google"
-  role            UserRole @default(STUDENT)
-  resetPasswordOTP String? 
-  resetPasswordOTPExpires DateTime? 
-  resetPasswordToken String? 
-  resetPasswordTokenExpires DateTime? 
-  instructor Instructor?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  payments Payment[]
-  wishlists       Wishlist[]
-  cartItems Cart[]
-  enrollments Enrollment[]
-  paymentMethods PaymentMethod[]
+  id                        Int             @id @default(autoincrement())
+  username                  String
+  email                     String          @unique
+  password                  String?
+  phone                     String?
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
+  authProvider              String          @default("local")
+  avatar                    String?
+  googleId                  String?         @unique
+  isEmailVerified           Boolean         @default(false)
+  resetPasswordOTP          String?
+  resetPasswordOTPExpires   DateTime?
+  resetPasswordToken        String?
+  resetPasswordTokenExpires DateTime?
+  role                      UserRole        @default(STUDENT)
+  wishlists                 Wishlist[]
+  cartItems                 Cart[]
+  enrollments               Enrollment[]
+  instructor                Instructor?
+  paymentMethods            PaymentMethod[]
+  payments                  Payment[]
+  examSubmissions ExamSubmission[]
   @@map("users")
 }
 
-//model Instructor
 model Instructor {
-  id              Int      @id @default(autoincrement())
-  userId          Int      @unique
-  bio             String?
-  specialization  String?        
-  social          Json?          
+  id                Int      @id @default(autoincrement())
+  userId            Int      @unique
+  bio               String?
+  specialization    String?
+  social            Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  certifications    String[] @default([])
+  languages         String[] @default([])
+  yearsOfExperience Int?
+  courses           Course[]
+  user              User     @relation(fields: [userId], references: [id])
 
- certifications  String[]   @default([])  
-  languages       String[]   @default([])  
-  yearsOfExperience Int?                     
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  user            User       @relation(fields: [userId], references: [id])
-  courses         Course[]
   @@map("instructors")
 }
 
-
-
-// Course Location Enum
-enum CourseLocation {
-  ELEARNING
-  ONSITE
-  ONLINE
-  HYBRID
-}
-
-
-enum CourseType {
-  FREE
-  PAID
-}
-
-
-// Course Model
 model Course {
-  id                Int             @id @default(autoincrement())
-  image             String
-  name_en           String
-  name_ar           String
-  duration_en       String
-  duration_ar       String
-  overview_en       String
-  overview_ar       String
-  objectives_en     String[]
-  objectives_ar     String[]
-  outcomes_en       String[]   
-  outcomes_ar       String[]
-  agenda_en         Json?
-  agenda_ar         Json?
-  examination_en    Json?
-  examination_ar    Json?
-  accreditation_en  String
-  features_en       String[]
-  features_ar       String[]
-
-  whoShouldAttend_en String[]
-  whoShouldAttend_ar String[]
+  id                 Int              @id @default(autoincrement())
+  image              String
+  name_en            String
+  name_ar            String
+  duration_en        String
+  duration_ar        String
+  overview_en        String?
+  overview_ar        String?
+  objectives_en      String[]
+  objectives_ar      String[]
+  outcomes_en        String[]
+  outcomes_ar        String[]
+  agenda_en          Json?
+  agenda_ar          Json?
+  examination_en     Json?
+  examination_ar     Json?
+  accreditation_en   String
+  features_en        String[]
+  features_ar        String[]
+  includes_en        String[]         @default([])
+  includes_ar        String[]         @default([])
+  paymentMethods     String[]
+  category           String
+  level              String
+  location           CourseLocation[]
+  language           String[]
+  type               CourseType       @default(PAID)
+  fees               Float?
+  discount           Int              @default(0)
+  delegatesEnrolled  Int              @default(0)
+  startDate          DateTime?
+  endDate            DateTime?
   prerequisites_en   String[]
   prerequisites_ar   String[]
+  whoShouldAttend_en String[]
+  whoShouldAttend_ar String[]
 
-  includes_en       String[]   @default([])
-  includes_ar       String[]   @default([])
-  paymentMethods    String[]
-  category          String
-  level             String
-  location          CourseLocation[]   
-  delegatesEnrolled Int       @default(0)
-  fees              Float?
-  type      CourseType @default(PAID)
-  startDate         DateTime?
-  endDate           DateTime?
-  language          String[]          
-  discount   Int   @default(0)
+  instructorId       Int?
+  instructor         Instructor?      @relation(fields: [instructorId], references: [id])
 
-  // Relations
- instructor Instructor? @relation(fields: [instructorId], references: [id])
- instructorId Int?
-  lectures       Lecture[] 
-  payments       Payment[]
-  enrollments    Enrollment[]
-  wishlists      Wishlist[]
-  cartItems      Cart[]
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  lectures           Lecture[]
+  payments           Payment[]
+  enrollments        Enrollment[]
+  wishlists          Wishlist[]
+  cartItems          Cart[]
+  
+  exams              Exam[]           
+
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
 
   @@map("courses")
 }
 
 
-// Lecture Model
+
+
+
 model Lecture {
   id          Int     @id @default(autoincrement())
-  title_en    String
-  title_ar    String
-  overview_en String
-  overview_ar String
+  number      Int
   duration    Int
   videoUrl    String?
-  number      Int
   courseId    Int
-  course      Course @relation(fields: [courseId], references: [id])
+  overview_ar String
+  overview_en String
+  title_ar    String
+  title_en    String
+  course      Course  @relation(fields: [courseId], references: [id])
 }
 
-
-
-// Enrollment Mode Enum
-enum EnrollmentMode {
-  ELEARNING
-  ONSITE
-  ONLINE
-  HYBRID
-}
-
-
-
-// Enrollment Model
 model Enrollment {
-  id           Int      @id @default(autoincrement())
-  userId       Int
-  courseId     Int
-  enrolledAt   DateTime @default(now())
-  status       String   @default("active") // "active", "completed", "dropped", "suspended"
-  completedAt  DateTime?
-  EnrollmentMode  EnrollmentMode 
-  // Relations
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  id             Int            @id @default(autoincrement())
+  userId         Int
+  courseId       Int
+  enrolledAt     DateTime       @default(now())
+  status         String         @default("active")
+  completedAt    DateTime?
+  EnrollmentMode EnrollmentMode
+  course         Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Ensure a user can only enroll once per course
   @@unique([userId, courseId])
   @@map("enrollments")
 }
 
-
-// Payment Model
 model Payment {
   id        Int      @id @default(autoincrement())
   userId    Int
   courseId  Int
   amount    Float
-  status    String   @default("pending") // "pending" or "success"
+  status    String   @default("pending")
   createdAt DateTime @default(now())
-
-  // Relations
-  user   User   @relation(fields: [userId], references: [id])
-  course Course @relation(fields: [courseId], references: [id])
+  course    Course   @relation(fields: [courseId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@map("payments")
 }
 
-// PaymentMethod Model
 model PaymentMethod {
   id             Int      @id @default(autoincrement())
   userId         Int
-  method         String   @default("visa") 
+  method         String   @default("visa")
   cardNumber     String?
   cvv            String?
-  expiryDate     String?  // MM/YY
+  expiryDate     String?
   cardHolderName String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-
-  // Relations
-  user User @relation(fields: [userId], references: [id])
+  user           User     @relation(fields: [userId], references: [id])
 
   @@map("payment_methods")
 }
-
-
 
 model Wishlist {
   id        Int      @id @default(autoincrement())
   userId    Int
   courseId  Int
   createdAt DateTime @default(now())
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, courseId]) 
+  @@unique([userId, courseId])
 }
 
-// Cart Model
 model Cart {
   id        Int      @id @default(autoincrement())
   userId    Int
   courseId  Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, courseId])
   @@map("cart")
+}
+
+enum UserRole {
+  ADMIN
+  INSTRUCTOR
+  STUDENT
+}
+
+enum CourseLocation {
+  ELEARNING
+  ONSITE
+  HYBRID
+  ONLINE
+}
+
+enum CourseType {
+  FREE
+  PAID
+}
+
+enum EnrollmentMode {
+  ELEARNING
+  ONSITE
+  HYBRID
+  ONLINE
+}
+
+
+model Exam {
+  id          Int      @id @default(autoincrement())
+  courseId    Int
+  title       String
+  description String?
+  duration    Int
+  totalMarks  Int
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  course      Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  questions   Question[]
+  submissions ExamSubmission[] 
+}
+
+model Question {
+  id            Int      @id @default(autoincrement())
+  examId        Int
+  text          String
+  options       String[]
+  correctAnswer String
+  mark          Int
+  exam          Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
+}
+
+
+
+model ExamSubmission {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  examId      Int
+  score       Int      @default(0)
+  submittedAt DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exam        Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, examId]) // prevent multiple submissions
 }

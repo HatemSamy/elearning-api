@@ -9,6 +9,8 @@ import WishlistRouter from './wishlist/wishlist.router.js'
 import cartRouter from './cart/cart.router.js'
 import lectureRouter from './lecture/lecture.router.js'
 import instructorRouter from './instructor/instructor.router.js'
+import ExamRouter from './exam/exam.router.js'
+
 
 
 
@@ -24,5 +26,6 @@ export {
     WishlistRouter,
     cartRouter, 
     lectureRouter,
-    instructorRouter
+    instructorRouter,
+    ExamRouter
 }

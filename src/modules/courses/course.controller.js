@@ -8,7 +8,8 @@ const prisma = new PrismaClient()
 export const createCourse = asyncHandler(async (req, res, next) => {
   try {
     const courseData = { ...req.body };
-
+    console.log(courseData);
+    
     if (!req.file) {
       return next(new Error("Course image is required", { cause: 400 }));
     }

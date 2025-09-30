@@ -1,4 +1,5 @@
-// Course Location Enum
+// Course Location npx prisma db push
+
 export const CourseLocation = {
   ELEARNING: "ELEARNING",
   ONSITE: "ONSITE", 
@@ -6,7 +7,7 @@ export const CourseLocation = {
   HYBRID: "HYBRID"
 };
 
-// Course Level Enum
+// Course Level 
 export const CourseLevel = {
   FOUNDATION: "FOUNDATION",
   INTERNAL_AUDITOR: "INTERNAL_AUDITOR",
@@ -14,7 +15,7 @@ export const CourseLevel = {
   LEAD_IMPLEMENTER: "LEAD_IMPLEMENTER"
 };
 
-// Enrollment Mode Enum
+// Enrollment Mode 
 export const EnrollmentMode = {
   ELEARNING: "ELEARNING",
   ONSITE: "ONSITE",

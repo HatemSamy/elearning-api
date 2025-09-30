@@ -4,7 +4,7 @@ import { paginate } from '../../services/pagination.js';
 
 const prisma = new PrismaClient()
 
-// Enroll user in a course
+
 export const enrollInCourse = asyncHandler(async (req, res, next) => {
   const courseId = Number(req.params.courseId);
   const userId = req.user.id;
@@ -20,10 +20,7 @@ export const enrollInCourse = asyncHandler(async (req, res, next) => {
 
   const existingEnrollment = await prisma.enrollment.findUnique({
     where: {
-      userId_courseId: {
-        userId,
-        courseId
-      }
+      userId_courseId: { userId, courseId }
     }
   });
 
@@ -39,11 +36,7 @@ export const enrollInCourse = asyncHandler(async (req, res, next) => {
     },
     include: {
       user: {
-        select: {
-          id: true,
-          username: true,
-          email: true
-        }
+        select: { id: true, username: true, email: true }
       },
       course: {
         select: {
@@ -59,6 +52,12 @@ export const enrollInCourse = asyncHandler(async (req, res, next) => {
     }
   });
 
+
+  await prisma.course.update({
+    where: { id: courseId },
+    data: { delegatesEnrolled: { increment: 1 } }
+  });
+
   res.status(201).json({
     success: true,
     message: 'Successfully enrolled in course',
@@ -68,14 +67,10 @@ export const enrollInCourse = asyncHandler(async (req, res, next) => {
 
 
 
-
-
-
-
 // Get user enrollments (with pagination, without status filter)
 export const getUserEnrollments = asyncHandler(async (req, res, next) => {
   const userId = req.user.id;
-  const { page = 1, size = 10, lang = 'en' } = req.query; // default to 'en'
+  const { page = 1, size = 10, lang = 'en' } = req.query; 
   const { limit, skip } = paginate(Number(page), Number(size));
 
   const enrollments = await prisma.enrollment.findMany({
